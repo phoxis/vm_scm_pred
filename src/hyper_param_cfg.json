@@ -1,0 +1,13 @@
+{
+ "colsample_bytree"  : 0.5,
+ "gamma"             : 1.2532246033623349,
+ "learning_rate"     : 0.005,
+ "max_depth"         : 6,
+ "n_estimators"      : 1000,
+ "subsample"         : 1.0,
+ "tree_method"       : "hist",
+ "use_label_encoder" : false,
+ "objective"         : "binary:logistic",
+ "eval_metric"       : "auc"
+}
+

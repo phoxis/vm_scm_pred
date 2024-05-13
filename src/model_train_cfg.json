@@ -1,0 +1,21 @@
+{
+  "target_type"              : "sub-clinical",
+  "early_pred_analysis_flag" :  true,
+  "load_data_flag"           :  true,
+  "model_train_flag"         :  false,
+  "sample_data_flag"         :  false,
+  "model_calibrate"          :  false,
+  "hyper_param_tune_flag"    :  false,
+  "hyper_param_load_log"     :  false,
+  "plot_borderline_hists"    :  false,
+  "train_data_path"          : "data/training",
+  "test_data_path"           : "data/testing",
+  "train_test_merge"         : false,
+  "train_test_date_split"    : "01-01-2018",
+  "train_valid_date_split"   : "01-01-2017",
+  "remove_calving_months"    : [9, 10, 11],
+  "hyper_param_file"         : "hyper_param_cfg.json",
+  "result_dir"               : "testing_new_1",
+  "remove_list"              : [],
+  "source_only"              : false
+}

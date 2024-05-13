@@ -1,0 +1,127 @@
+[Dataset Generation]
+Load "prepare_data.py" in environment. Then run:
+
+prepare_dataset(Path(data_path), less_freq_days_number = [days]);
+
+to generate the dataset. Where "days" is the simulated recording frequency. If "days" = 0, then the original frequency is recorded.
+
+"data_path" is the path where the raw data is present.
+
+Files needed in the "data_path" variable in "prepare_dataset" function in "prepare_data.py" function, and the fields required in each function.
+
+db_master.csv: csv
+cow,tbnum,dob,farm,treatment,subtreatment,year,trtdescription, parity,calvingdate, dryoffdate, exitdate, exittype, exitreason
+
+
+db_mastitis.csv: csv
+tb_num,calving,parity,diagnosis_date,serverity,rf,rh,lf,lh,lost_quarter,drug,clinical,sub_clinical,clin_sub,tubes
+
+
+db_milk.csv: csv
+tb_num,calving,parity,milk_date,milking_time,fat,protein,lactose,casein,ffa,ts,urea,scc,yield,time,max_flow,conc_fed,row,side,unit
+
+
+db_qtrbact.csv: csv
+tb_num,calving,parity,mast_date,milking_time,qtr,num_of_bugs1,type_bugs1
+
+
+db_weights.csv: csv
+tbnum,calving,parity,date,weight,BCS
+
+PTA_REL_computed_db.txt: blank separated
+"ani" "techid" "ndesc" "nrec" "PTApar1" "PTApar2" "PTApar3" "PTA" "relSCC"
+
+----------------------------
+
+To properly generate the datsets, first run the original frequency datasets
+
+prepare_dataset(Path('./data/training'), less_freq_days_number = [0]);
+prepare_dataset(Path('./data/test'), less_freq_days_number = [0]);
+
+This will generate the training and testing datasets for the original recording frequency.
+Once these generation is complete, then other frequency datasets can be generated, for example:
+
+prepare_dataset(Path('./data/training'), less_freq_days_number = [15, 30]);
+
+will generate training datasets for the 15 and 30 days simulated recording frequency datasets.
+
+----------------------------
+
+
+
+[Model Training]
+
+Once the dataset is generated using the above script (or copied/downloaded), the script "model_training.py" can be used to train the model.
+The "model_training.py" script is supposed to used by open and exec after a Python terminal is spawned and the global environment should have a "this_day" variable having the simulated recording frequency, based on which the script will read the corresponding dataset.
+
+
+Example:
+
+Start a Python session
+
+> python
+
+>>> this_day = 0;
+>>> exec (open ("model_training.py").read ());
+
+
+The above lines will make the "model_training.py" script work with the original data recording frequency (indicated by this_day = 0). To work with the 15 days simuated data recording frequency use "this_day = 15", and so on.
+
+Along with this script a "model_train_cfg.json" file is present from which several configuration are stored which are read by the "model_training.cfg"
+
+The fields of the "model_train_cfg.json" is explained below:
+
+{
+  "target_type"              : "clinical" or "sub-clinical" for Clinical or Sub-Clinical target type
+  "early_pred_analysis_flag" :  If to perform analysis of how much percent oof the cases were detected 7 days before upto 1 day before the infection occurred.
+  "load_data_flag"           :  true or false. If to load data in the environment.if the dataframe is already loaded in the environment, this can be kept false. Otherwise keep it true to force read.
+  "model_train_flag"         :  true or false, If to train the model or not.
+  "sample_data_flag"         :  true or false, If to perform oversampling or not. (KEEP FALSE)
+  "model_calibrate"          :  true or false, If to perform explicit model calibration. (KEEP FALSE)
+  "hyper_param_tune_flag"    :  true or false, If to perform hyperparameter tuning. If true it performs some hyperparameter tuning, Otherwise it skips it. (KEEP FALSE to just build the model).
+  "hyper_param_load_log"     :  true or false, If "hyper_param_tune_flag" is true, then if to load from intermediate searched hyperparameter space and continue. (KEEP FALSE to just build the model).
+  "plot_borderline_hists"    :  IGNORE this field
+  "train_data_path"          : "data/training", A string indicating the training data set path. This path is mandatory
+  "test_data_path"           : "data/testing", A string indicating the testing data set path. This path is not mandatory.
+  "train_test_merge"         : true or false,          If to merge the train and test, so that we can make our own partition.
+  "train_test_date_split"    : A date string "dd-mm-yyyy" indicating the train test split, if "train_test_merge" is true.
+  "train_valid_date_split"   : A date string "dd-mm-yyyy" indicating the train and validation split, from the training data. This validation set will be used to tune the youden index and early stopping.
+  "remove_calving_months"    : A list indicating the month number. Cows calving in these months will be removed from the data.
+  "hyper_param_file"         : A path indicating the hyperparameters of XGBoost in json format.
+  "result_dir"               : A string indicating the path where to store the results. Note that this directory must exist, the "model_training.py" script will not make the directory.
+  "remove_list"              : A list of variable names to be removed from the default set. See function "get_input_variable_list" in "model_training.py"
+  "source_only"              : true or false, if true then the script is only sourced and the functions are loaded in the environment, otherwise it continues processing based on the above configuration.
+}
+
+
+An example if the json configuration would be:
+
+{
+  "target_type"              : "sub-clinical",
+  "early_pred_analysis_flag" :  true,
+  "load_data_flag"           :  true,
+  "model_train_flag"         :  true,
+  "sample_data_flag"         :  false,
+  "model_calibrate"          :  false,
+  "hyper_param_tune_flag"    :  false,
+  "hyper_param_load_log"     :  false,
+  "plot_borderline_hists"    :  false,
+  "train_data_path"          : "data/training",
+  "test_data_path"           : "data/testing",
+  "train_test_merge"         : false,
+  "train_test_date_split"    : "01-01-2018",
+  "train_valid_date_split"   : "01-01-2017",
+  "remove_calving_months"    : [9, 10, 11],
+  "hyper_param_file"         : "hyper_param_cfg.json",
+  "result_dir"               : "./result/sub_clin/",
+  "remove_list"              : [],
+  "source_only"              : false
+}
+
+
+-----------------------
+
+[Analyse Result]
+Once the results are generated, use the "VistaMilk Mastitis Less Frequent Data Model Summaries.ipynb" notebook to analyse the results. Follow the instructions in the notebook.
+
+
